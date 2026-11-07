@@ -12,7 +12,11 @@
 - ### Create Docker files for each component (Frontend and Backend) and build the Docker images
 
 <img width="1037" height="1017" alt="image" src="https://github.com/user-attachments/assets/d814c5fb-2598-42ba-aea0-76e0c85c6220" />
+
+- ### Build Docker images for both components.
+
 <img width="1891" height="891" alt="image" src="https://github.com/user-attachments/assets/13b678fd-d012-46e6-b4ff-13ba549289a2" />
+
 <img width="1892" height="197" alt="image" src="https://github.com/user-attachments/assets/45a6c300-2320-4f31-b138-fde1cb6ceafe" />
 
 - ### Create individual ECR repositories.
@@ -24,6 +28,18 @@
 <img width="1455" height="512" alt="image" src="https://github.com/user-attachments/assets/ca12d25a-eb4a-4d2e-8344-6faa6cb08244" />
 <img width="1462" height="566" alt="image" src="https://github.com/user-attachments/assets/89bc9696-5cee-4493-894f-5b34d34d91e1" />
 <img width="1452" height="571" alt="image" src="https://github.com/user-attachments/assets/e418440c-c4c4-46d0-878d-5edcb9760c2a" />
+
+
+## Step 3: AWS Environment Setup
+
+- ### Install and Configure AWS CLI
+<img width="677" height="196" alt="image" src="https://github.com/user-attachments/assets/d15e2339-7ec4-42f4-b84d-059d0036cbb9" />
+
+- ### Set up AWS CLI with your access credentials.
+<img width="1167" height="719" alt="image" src="https://github.com/user-attachments/assets/0091b11b-3514-4ff5-b757-c71a4d5dacb6" />
+
+## Step 4: Continuous Integration (CI) using Jenkins
+
 
 
 
