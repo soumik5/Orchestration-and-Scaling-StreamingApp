@@ -49,22 +49,43 @@ pipeline {
 
             steps {
 
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'soumik-aws'
+
+                ]]) {
+
                 sh '''
                     set -eu
+                    set +x
 
+                    echo "Checking Docker..."
                     docker --version
+
+                    echo "Checking Docker Compose..."
+                    docker compose version
+
+                    echo "Checking AWS CLI..."
                     aws --version
+
+                    echo "Configuring AWS credentials..."
+
+                    export AWS_DEFAULT_REGION="$AWS_REGION"
+
+                    echo "Verifying AWS authentication..."
 
                     ACCOUNT=$(aws sts get-caller-identity \
                         --query Account \
                         --output text)
 
+                    echo "Authenticated AWS Account: $ACCOUNT"
+
                     if [ "$ACCOUNT" != "$AWS_ACCOUNT_ID" ]; then
-                        echo "Incorrect AWS account!"
+                        echo "ERROR: AWS account mismatch!"
                         exit 1
                     fi
 
-                    echo "AWS authentication successful."
+                    echo "AWS authentication successful!"
                 '''
 
             }

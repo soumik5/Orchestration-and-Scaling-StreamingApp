@@ -1,0 +1,125 @@
+pipeline {
+  agent any
+
+  environment {
+    GIT_REPO        = "https://github.com/Harika130822/HV_Assign_SampleMERN.git"
+    AWS_REGION      = "ap-south-1"
+    AWS_ACCOUNT_ID  = "129373676098"
+    ECR_REGISTRY    = "public.ecr.aws/l5r9g0t4" // l5r9g0t4 :"${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com"
+    AWSSNS_TOPIC_ARN= "arn:aws:sns:${AWS_REGION}:${ECR_ACCOUNT_ID}:mernapp-notifications"
+    IMAGE_TAG       = "${BUILD_NUMBER}"
+    EKS_CLUSTER_NAME= "MERN-CLUSTER"
+    MONGO_URL       = credentials('MONGO_URL')
+  }
+
+  stages {
+
+    stage('Git Checkout') {
+      steps {
+        git branch: 'main', url: "${GIT_REPO}"
+      }
+    }
+    stage('Get Caller Identity') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws_credentials']]) {
+          sh """
+            aws sts get-caller-identity
+          """
+        }
+      }
+    }
+    
+    stage('Login to ECR') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws_credentials']]) {
+          sh """
+            aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
+          """
+        }
+      }
+    }
+
+    stage('Build and Push Images') {
+      steps {
+        script {
+          def services = [
+            "backend/profileService": "mern/profile",
+            "backend/helloService"  : "mern/hello",
+            "frontend"              : "mern/frontend"
+          ]
+
+          services.each { folder, repoName ->
+            echo "Building image for ${folder}"
+
+            sh """
+              docker build -t ${repoName}:${IMAGE_TAG} ./${folder}
+              docker tag ${repoName}:${IMAGE_TAG} ${ECR_REGISTRY}/${repoName}:${IMAGE_TAG}
+              docker push ${ECR_REGISTRY}/${repoName}:${IMAGE_TAG}
+            """
+          }
+        }
+      }
+    }
+
+    stage('Update kubeconfig') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws_credentials']]) {
+          sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}"
+        }
+      }
+    }
+
+    stage('Deploy to EKS with Helm') {
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws_credentials']]) {
+          script {
+            def services = [
+              ["frontend",        "./helm/frontend",              "${ECR_REGISTRY}/mern/frontend"],
+              ["hello-service",   "./helm/backend/helloServices", "${ECR_REGISTRY}/mern/hello"],
+              ["profile-service", "./helm/backend/profileServices","${ECR_REGISTRY}/mern/profile"]
+            ]
+
+            services.each { svc ->
+              def releaseName = svc[0]
+              def chartPath   = svc[1]
+              def imageRepo   = svc[2]
+
+              echo "Deploying ${releaseName} using Helm chart at ${chartPath}"
+
+              sh """
+                helm upgrade --install ${releaseName} ${chartPath} \
+                  --namespace default \
+                  --set image.repository=${imageRepo} \
+                  --set image.tag=${IMAGE_TAG} \
+                  --set image.pullPolicy=IfNotPresent \
+                  --wait --timeout 5m
+              """
+              //"helm upgrade --install mernapp . --set profileService.image=public.ecr.aws/mern/profile:${buildNumber} --set helloService.image=public.ecr.aws/mern/hello:${buildNumber}"
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    post {
+    success {
+        sh """
+        aws sns publish \
+        --topic-arn ${AWSSNS_TOPIC_ARN} \
+        --subject "Deployment Success" \
+        --message "Mern App deployed successfully."
+        """
+    }
+
+    failure {
+        sh """
+        aws sns publish \
+        --topic-arn ${AWSSNS_TOPIC_ARN} \
+        --subject "Deployment Failed" \
+        --messa
