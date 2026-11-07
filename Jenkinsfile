@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-
     options {
         timestamps()
         disableConcurrentBuilds()
@@ -29,11 +28,7 @@ pipeline {
         // 1. CHECKOUT SOURCE CODE
 
         stage('Checkout') {
-
             steps {
-
-                checkout scm
-
                 script {
 
                     env.IMAGE_TAG = sh(
@@ -41,10 +36,9 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
+                    echo "Generated Docker image tag: ${env.IMAGE_TAG}"
+
                 }
-
-                echo "Image tag: ${IMAGE_TAG}"
-
             }
         }
 
