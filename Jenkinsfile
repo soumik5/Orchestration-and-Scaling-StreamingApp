@@ -1,8 +1,6 @@
 pipeline {
+    agent any
 
-    agent {
-        label 'any'
-    }
 
     options {
         timestamps()
