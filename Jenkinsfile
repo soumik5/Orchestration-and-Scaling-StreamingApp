@@ -21,7 +21,6 @@ pipeline {
         ECR_PREFIX = 'streamingapp'
 
         MONGO_VERSION = '8.0'
-
     }
 
     stages {
@@ -41,23 +40,23 @@ pipeline {
                         returnStdout: true
                     ).trim()
 
+                    def fullCommitId = sh(
+                        script: 'git rev-parse HEAD',
+                        returnStdout: true
+                    ).trim()
+
                     if (!commitId) {
                         error('Unable to generate Git commit ID.')
                     }
 
                     env.IMAGE_TAG = commitId
 
-                    echo "Full Git Commit: ${sh(
-                        script: 'git rev-parse HEAD',
-                        returnStdout: true
-                    ).trim()}"
+                    echo "Full Git Commit: ${fullCommitId}"
 
                     echo "Generated Docker Image Tag: ${env.IMAGE_TAG}"
 
                 }
-
             }
-
         }
 
 
@@ -85,8 +84,6 @@ pipeline {
                         echo "Checking AWS CLI..."
                         aws --version
 
-                        echo "Configuring AWS credentials..."
-
                         export AWS_DEFAULT_REGION="$AWS_REGION"
 
                         echo "Verifying AWS authentication..."
@@ -104,11 +101,8 @@ pipeline {
 
                         echo "AWS authentication successful!"
                     '''
-
                 }
-
             }
-
         }
 
 
@@ -131,9 +125,7 @@ pipeline {
 
                     echo "All five application Dockerfiles found."
                 '''
-
             }
-
         }
 
 
@@ -174,11 +166,8 @@ pipeline {
 
                         echo "All six ECR repositories verified successfully."
                     '''
-
                 }
-
             }
-
         }
 
 
@@ -209,11 +198,8 @@ pipeline {
 
                         echo "ECR login successful."
                     '''
-
                 }
-
             }
-
         }
 
 
@@ -240,9 +226,7 @@ pipeline {
 
                     echo "MongoDB image pushed successfully."
                 '''
-
             }
-
         }
 
 
@@ -307,15 +291,10 @@ pipeline {
 
                                 echo "Pushed: $IMAGE"
                             '''
-
                         }
-
                     }
-
                 }
-
             }
-
         }
 
 
@@ -342,9 +321,7 @@ pipeline {
 
                     echo "Frontend image pushed successfully."
                 '''
-
             }
-
         }
 
 
@@ -388,17 +365,14 @@ pipeline {
 
                         echo "All six images verified successfully."
                     '''
-
                 }
-
             }
-
         }
 
     }
 
 
-    // POST BUILD ACTIONS
+    // 10. POST BUILD ACTIONS
 
     post {
 
@@ -417,7 +391,6 @@ pipeline {
 
             ===================================
             """
-
         }
 
         failure {
@@ -431,9 +404,6 @@ pipeline {
             sh '''
                 docker logout "$ECR_REGISTRY" || true
             '''
-
         }
-
     }
-
 }
