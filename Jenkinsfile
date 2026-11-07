@@ -78,9 +78,6 @@ pipeline {
                         echo "Checking Docker..."
                         docker --version
 
-                        echo "Checking Docker Compose..."
-                        docker compose version
-
                         echo "Checking AWS CLI..."
                         aws --version
 
