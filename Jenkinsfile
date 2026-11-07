@@ -88,10 +88,10 @@ pipeline {
                     echo "AWS authentication successful!"
                 '''
 
+                }
             }
+
         }
-
-
         // 3. VALIDATE DOCKERFILES
 
         stage('Validate Dockerfiles') {
