@@ -40,6 +40,23 @@
 
 ## Step 4: Continuous Integration (CI) using Jenkins
 
+- ### Set Up Jenkins
+
+
+- ### Install Jenkins on an AWS EC2 instance.
+
+
+- ### Configure necessary plugins and credentials.
+
+
+- ### Create Jenkins Pipelines
+
+
+- ### Build and push Docker images to ECR using Jenkins jobs.
+
+
+- ### Trigger builds automatically on new commits from the Git repository.
+
 
 
 
